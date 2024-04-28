@@ -35,10 +35,12 @@ class UsersController {
 
   async update(req, res) {
     const { name, email, password, old_password } = req.body;
-    const { id } = req.params;
+    const user_id = req.user.id;
 
     const database = await sqliteConnection();
-    const user = await database.get("SELECT * FROM users WHERE id = ?", [id]);
+    const user = await database.get("SELECT * FROM users WHERE id = ?", [
+      user_id,
+    ]);
 
     if (!user) {
       throw new AppError("Usuário não encontrado.");
@@ -46,7 +48,7 @@ class UsersController {
 
     const userWithUpdateEmail = await database.get(
       "SELECT * FROM users WHERE email = ? AND id != ?",
-      [email, id]
+      [email, user_id]
     );
     if (userWithUpdateEmail) {
       throw new AppError("Este e-mail já está em uso.");
@@ -79,7 +81,7 @@ class UsersController {
             updated_at = DATETIME('now')
             WHERE id = ?
             `,
-      [user.name, user.email, user.password, id]
+      [user.name, user.email, user.password, user_id]
     );
 
     return res.json();
